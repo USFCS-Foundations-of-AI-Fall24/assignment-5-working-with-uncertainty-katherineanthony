@@ -1,5 +1,5 @@
 
-from sklearn.datasets import load_iris
+from sklearn.datasets import load_wine
 from sklearn import tree
 from sklearn.model_selection import KFold
 from sklearn.ensemble import RandomForestClassifier, HistGradientBoostingClassifier
@@ -11,24 +11,30 @@ import joblib
 ### This code shows how to use KFold to do cross_validation.
 ### This is just one of many ways to manage training and test sets in sklearn.
 
-iris = load_iris()
-X, y = iris.data, iris.target
+wine = load_wine() ## TODO: change this to a different dataset (from online)
+X, y = wine.data, wine.target
 scores = []
 kf = KFold(n_splits=5)
 for train_index, test_index in kf.split(X) :
     X_train, X_test, y_train, y_test = \
         (X[train_index], X[test_index], y[train_index], y[test_index])
-    clf = tree.DecisionTreeClassifier()
+    # clf = tree.DecisionTreeClassifier()
+    ## add here, clf = tree.RandomForestClassifier(criterion='gini')
+    clf = RandomForestClassifier(n_estimators=50, criterion='entropy')
+
     clf.fit(X_train, y_train)
     scores.append(clf.score(X_test, y_test))
 
 print(scores)
 
+
 ## Part 2. This code (from https://scikit-learn.org/1.5/auto_examples/ensemble/plot_forest_hist_grad_boosting_comparison.html)
 ## shows how to use GridSearchCV to do a hyperparameter search to compare two techniques.
 from sklearn.datasets import load_breast_cancer
+## CV = cross-fold validation (like five fold)
 
 X,y = load_breast_cancer(return_X_y=True, as_frame=True)
+## features = x, classifications = y (pandas dataframe)
 
 N_CORES = joblib.cpu_count(only_physical_cores=True)
 print(f"Number of physical cores: {N_CORES}")
@@ -41,20 +47,21 @@ models = {
         max_leaf_nodes=15, random_state=0, early_stopping=False
     ),
 }
+## what are the values we're interested in trying out? the following:
 param_grids = {
-    "Random Forest": {"n_estimators": [10, 20, 50, 100]},
-    "Hist Gradient Boosting": {"max_iter": [10, 20, 50, 100, 300, 500]},
+    "Random Forest": {"n_estimators": [5, 10, 15, 20]}, ## TODO: change these)
+    "Hist Gradient Boosting": {"max_iter": [25, 50, 75, 100]}, ## TODO: change these
 }
-cv = KFold(n_splits=2, shuffle=True, random_state=0)
+cv = KFold(n_splits=5, shuffle=True, random_state=0) ## TODO: change n_splits = 5 (five folds)
 
 results = []
 for name, model in models.items():
-    grid_search = GridSearchCV(
+    grid_search = GridSearchCV( ## fancy way of trying everything
         estimator=model,
         param_grid=param_grids[name],
         return_train_score=True,
         cv=cv,
-    ).fit(X, y)
+    ).fit(X, y) ## fit trains, and computes some stats
     result = {"model": name, "cv_results": pd.DataFrame(grid_search.cv_results_)}
     results.append(result)
 

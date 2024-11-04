@@ -7,7 +7,9 @@ car_model = BayesianNetwork(
         ("Battery", "Ignition"),
         ("Ignition","Starts"),
         ("Gas","Starts"),
-        ("Starts","Moves")
+        ("Starts","Moves"),
+        # ("KeyPresent", "Ignition"),
+        # ("KeyPresent", "Gas")
     ]
 )
 
@@ -60,12 +62,42 @@ cpd_moves = TabularCPD(
                  "Starts": ['yes', 'no'] }
 )
 
+## TODO: change the following to the KeyPresent one
+# cpd_ignition = TabularCPD(
+#     variable=  "Ignition", variable_card=2,
+#     values=[[0.75, 0.01],[0.25, 0.99]],
+#     evidence=["Battery"],
+#     evidence_card=[2],
+#     state_names={"Ignition": ["Works", "Doesn't work"],
+#                  "Battery": ['Works',"Doesn't work"]}
+# )
+
 
 # Associating the parameters with the model structure
-car_model.add_cpds( cpd_starts, cpd_ignition, cpd_gas, cpd_radio, cpd_battery, cpd_moves)
+def det_query(variables, evidence):
+    car_model.add_cpds( cpd_starts, cpd_ignition, cpd_gas, cpd_radio, cpd_battery, cpd_moves)
 
-car_infer = VariableElimination(car_model)
+    car_infer = VariableElimination(car_model)
 
-print(car_infer.query(variables=["Moves"],evidence={"Radio":"turns on", "Starts":"yes"}))
+    # print(car_infer.query(variables=["Moves"],evidence={"Radio":"turns on", "Starts":"yes"}))
+    q = car_infer.query(variables=variables,evidence=evidence)
+    print(q)
 
+## TODO: add some more queries here
 
+if __name__ == '__main__':
+    print("probability of battery not working given the car will not move")
+    det_query(variables=["Battery"], evidence={"Moves":"no"})
+    print("probability of car not starting given the radio not working")
+    det_query(variables=["Starts"], evidence={"Radio":"Doesn't turn on"})
+    print("given the battery working, does the probability of the radio working change if we discover that the car has gas in it?")
+    det_query(variables=["Radio"], evidence={"Battery":"Works"})
+    det_query(variables=["Radio"], evidence={"Battery": "Works", "Gas":"Full"})
+    print("no.")
+    print("given the car does not move, how does the probability of the ignition failing change if we observe that the car does not have gas in it")
+    det_query(variables=["Ignition"], evidence={"Moves":"no"})
+    det_query(variables=["Ignition"], evidence={"Moves": "no", "Gas":"Empty"})
+    print("it is more likely that the ignition works")
+    print("probability that the car starts if the radio works and it is has gas in it")
+    det_query(variables=["Starts"], evidence={"Radio": "turns on", "Gas": "Full"})
+    pass

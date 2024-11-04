@@ -1,5 +1,8 @@
 from pgmpy.models import BayesianNetwork
 from pgmpy.inference import VariableElimination
+from torch.autograd import variable
+
+## TODO: install pgmpy
 
 alarm_model = BayesianNetwork(
     [
@@ -47,12 +50,22 @@ state_names={"Alarm":['yes','no'], "MaryCalls":['yes', 'no']},
 )
 
 # Associating the parameters with the model structure
-alarm_model.add_cpds(
-    cpd_burglary, cpd_earthquake, cpd_alarm, cpd_johncalls, cpd_marycalls)
+def det_query(variables, evidence):
+    alarm_model.add_cpds(
+        cpd_burglary, cpd_earthquake, cpd_alarm, cpd_johncalls, cpd_marycalls)
 
-alarm_infer = VariableElimination(alarm_model)
+    alarm_infer = VariableElimination(alarm_model)
 
-print(alarm_infer.query(variables=["JohnCalls"],evidence={"Earthquake":"yes"}))
-q = alarm_infer.query(variables=["JohnCalls", "Earthquake"],evidence={"Burglary":"yes","MaryCalls":"yes"}))
-print(q)
+    q = alarm_infer.query(variables=variables,evidence=evidence)
+    print(q)
+
+if __name__ == '__main__':
+    print("probability that John calls given Earthquake")
+    det_query(variables=["JohnCalls"], evidence={"Earthquake":"yes"})
+    print("probability of Mary calling given that John called")
+    det_query(variables=["MaryCalls"], evidence={"JohnCalls":"yes"})
+    print("probability of both John and Mary calling given Alarm")
+    det_query(variables=["MaryCalls", "JohnCalls"], evidence={"Alarm":"yes"})
+    print("probability of Alarm, given that Mary called")
+    det_query(variables=["Alarm"], evidence={"MaryCalls":"yes"})
 

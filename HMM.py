@@ -43,11 +43,12 @@ class HMM:
 
    ## you do this.
     def generate(self, n):
+        ## monte carlo situation
         """return an n-length Sequence by randomly sampling from this HMM."""
         pass
 
     def forward(self, sequence):
-        pass
+        pass ## TODO: do this first
     ## you do this: Implement the Viterbi algorithm. Given a Sequence with a list of emissions,
     ## determine the most likely sequence of states.
 
