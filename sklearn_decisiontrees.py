@@ -11,7 +11,7 @@ import joblib
 ### This code shows how to use KFold to do cross_validation.
 ### This is just one of many ways to manage training and test sets in sklearn.
 
-wine = load_wine() ## TODO: change this to a different dataset (from online)
+wine = load_wine()
 X, y = wine.data, wine.target
 scores = []
 kf = KFold(n_splits=5)
@@ -49,10 +49,10 @@ models = {
 }
 ## what are the values we're interested in trying out? the following:
 param_grids = {
-    "Random Forest": {"n_estimators": [5, 10, 15, 20]}, ## TODO: change these)
-    "Hist Gradient Boosting": {"max_iter": [25, 50, 75, 100]}, ## TODO: change these
+    "Random Forest": {"n_estimators": [5, 10, 15, 20]},
+    "Hist Gradient Boosting": {"max_iter": [25, 50, 75, 100]},
 }
-cv = KFold(n_splits=5, shuffle=True, random_state=0) ## TODO: change n_splits = 5 (five folds)
+cv = KFold(n_splits=5, shuffle=True, random_state=0)
 
 results = []
 for name, model in models.items():

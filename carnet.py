@@ -8,8 +8,7 @@ car_model = BayesianNetwork(
         ("Ignition","Starts"),
         ("Gas","Starts"),
         ("Starts","Moves"),
-        # ("KeyPresent", "Ignition"),
-        # ("KeyPresent", "Gas")
+        ("KeyPresent", "Starts")
     ]
 )
 
@@ -25,6 +24,12 @@ cpd_gas = TabularCPD(
     variable="Gas", variable_card=2, values=[[0.40], [0.60]],
     state_names={"Gas":['Full',"Empty"]},
 )
+
+cpd_key = TabularCPD(
+    variable="KeyPresent", variable_card=2, values=[[0.70], [0.30]],
+    state_names={"KeyPresent":["yes","no"]},
+)
+
 
 cpd_radio = TabularCPD(
     variable=  "Radio", variable_card=2,
@@ -47,10 +52,16 @@ cpd_ignition = TabularCPD(
 cpd_starts = TabularCPD(
     variable="Starts",
     variable_card=2,
-    values=[[0.95, 0.05, 0.05, 0.001], [0.05, 0.95, 0.95, 0.9999]],
-    evidence=["Ignition", "Gas"],
-    evidence_card=[2, 2],
-    state_names={"Starts":['yes','no'], "Ignition":["Works", "Doesn't work"], "Gas":['Full',"Empty"]},
+    values=[[0.95, 0.05, 0.05, 0.001, 0.99, 0.01, 0.01, 0.01],
+            [0.05, 0.95, 0.95, 0.9999, 0.01, 0.99, 0.99, 0.99],
+            ],
+    evidence=["Ignition", "Gas", "KeyPresent"],
+    evidence_card=[2, 2, 2],
+    state_names={"Starts":['yes','no'],
+                 "Ignition":["Works", "Doesn't work"],
+                 "Gas":['Full',"Empty"],
+                 "KeyPresent":['yes','no']
+                },
 )
 
 cpd_moves = TabularCPD(
@@ -62,20 +73,10 @@ cpd_moves = TabularCPD(
                  "Starts": ['yes', 'no'] }
 )
 
-## TODO: change the following to the KeyPresent one
-# cpd_ignition = TabularCPD(
-#     variable=  "Ignition", variable_card=2,
-#     values=[[0.75, 0.01],[0.25, 0.99]],
-#     evidence=["Battery"],
-#     evidence_card=[2],
-#     state_names={"Ignition": ["Works", "Doesn't work"],
-#                  "Battery": ['Works',"Doesn't work"]}
-# )
-
 
 # Associating the parameters with the model structure
 def det_query(variables, evidence):
-    car_model.add_cpds( cpd_starts, cpd_ignition, cpd_gas, cpd_radio, cpd_battery, cpd_moves)
+    car_model.add_cpds( cpd_starts, cpd_ignition, cpd_gas, cpd_radio, cpd_battery, cpd_moves, cpd_key)
 
     car_infer = VariableElimination(car_model)
 
@@ -83,7 +84,6 @@ def det_query(variables, evidence):
     q = car_infer.query(variables=variables,evidence=evidence)
     print(q)
 
-## TODO: add some more queries here
 
 if __name__ == '__main__':
     print("probability of battery not working given the car will not move")
@@ -100,4 +100,6 @@ if __name__ == '__main__':
     print("it is more likely that the ignition works")
     print("probability that the car starts if the radio works and it is has gas in it")
     det_query(variables=["Starts"], evidence={"Radio": "turns on", "Gas": "Full"})
-    pass
+
+    print("probability that the key is not present given that the car does not move")
+    det_query(variables=["KeyPresent"], evidence={"Moves":"no"})

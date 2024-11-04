@@ -2,8 +2,6 @@ from pgmpy.models import BayesianNetwork
 from pgmpy.inference import VariableElimination
 from torch.autograd import variable
 
-## TODO: install pgmpy
-
 alarm_model = BayesianNetwork(
     [
         ("Burglary", "Alarm"),
