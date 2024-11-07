@@ -4,6 +4,8 @@ import random
 import argparse
 import codecs
 import os
+from collections import defaultdict
+
 import numpy
 
 # Sequence - represents a sequence of hidden states and corresponding
@@ -33,13 +35,49 @@ class HMM:
         self.transitions = transitions
         self.emissions = emissions
 
+    # def create_dict(file, dict):
+        # with open(file, 'r') as f:
+        #     for line in f.readlines():
+        #         line = line.split()
+        #         if line[0] not in dict:
+        #             dict[line[0]] = {}
+        #         if line[1] not in dict[line[0]]:
+        #             dict[line[0]][line[1]] = {}
+        #         dict[line[0]].update({line[1]: line[2]})
+        #
+        #         print("added:", dict[line[0]])
+
     ## part 1 - you do this.
     def load(self, basename):
         """reads HMM structure from transition (basename.trans),
         and emission (basename.emit) files,
         as well as the probabilities."""
-        pass
 
+        emit_file = basename + '.emit'
+        trans_file = basename + '.trans'
+        emit_dict = {}
+        with open(emit_file, 'r') as f:
+            for line in f.readlines():
+                line = line.split()
+                if line[0] not in emit_dict:
+                    emit_dict[line[0]] = {}
+                if line[1] not in emit_dict[line[0]]:
+                    emit_dict[line[0]][line[1]] = {}
+                emit_dict[line[0]].update({line[1]: line[2]})
+
+        trans_dict = {}
+        with open(trans_file, 'r') as f:
+            for line in f.readlines():
+                line = line.split()
+                if line[0] not in trans_dict:
+                    trans_dict[line[0]] = {}
+                if line[1] not in trans_dict[line[0]]:
+                    trans_dict[line[0]][line[1]] = {}
+                trans_dict[line[0]].update({line[1]: line[2]})
+
+        self.emissions = emit_dict
+        self.transitions = trans_dict
+        return
 
    ## you do this.
     def generate(self, n):
