@@ -4,8 +4,7 @@ from HMM import HMM
 
 
 class MyTestCase(unittest.TestCase):
-    def test_something(self):
-        self.assertEqual(True, False)  # add assertion here
+
     def test_load(self):
         h = HMM()
         h.load('cat')
@@ -18,6 +17,17 @@ class MyTestCase(unittest.TestCase):
          'hungry': {'silent': '0.2', 'meow': '0.6', 'purr': '0.2'}}
         self.assertEqual(h.transitions, transitions)
         self.assertEqual(h.emissions, emissions)
+
+
+    def test_generate(self):
+        h = HMM()
+        h.load('cat')
+        print(h.generate(20))
+
+        h1 = HMM()
+        h1.load('partofspeech')
+        print(h1.generate(20))
+
 
 
 if __name__ == '__main__':

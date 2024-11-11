@@ -35,18 +35,6 @@ class HMM:
         self.transitions = transitions
         self.emissions = emissions
 
-    # def create_dict(file, dict):
-        # with open(file, 'r') as f:
-        #     for line in f.readlines():
-        #         line = line.split()
-        #         if line[0] not in dict:
-        #             dict[line[0]] = {}
-        #         if line[1] not in dict[line[0]]:
-        #             dict[line[0]][line[1]] = {}
-        #         dict[line[0]].update({line[1]: line[2]})
-        #
-        #         print("added:", dict[line[0]])
-
     ## part 1 - you do this.
     def load(self, basename):
         """reads HMM structure from transition (basename.trans),
@@ -82,8 +70,26 @@ class HMM:
    ## you do this.
     def generate(self, n):
         ## monte carlo situation
-        """return an n-length Sequence by randomly sampling from this HMM."""
-        pass
+        i = 0
+        initial_state = random.choice(list(self.transitions.get("#").keys()))
+        trans_states = []
+        emit_states = []
+        curr_state = initial_state
+        while i < n:
+            trans_keys = list(self.transitions.get(curr_state).keys())
+            trans_values = list(map(float, list(self.transitions[curr_state].values())))
+            trans_choice = random.choices(population=trans_keys, weights=trans_values)
+
+            emit_keys = list(self.emissions.get(curr_state).keys())
+            emit_values = list(map(float, list(self.emissions[curr_state].values())))
+            emit_choice = random.choices(population=emit_keys, weights=emit_values)
+            ## generate Sequence
+            trans_states.append(str(trans_choice[0]))
+            emit_states.append(str(emit_choice[0]))
+            curr_state = str(trans_choice[0])
+            i += 1
+
+        return trans_states + emit_states
 
     def forward(self, sequence):
         pass ## TODO: do this first
@@ -101,7 +107,15 @@ class HMM:
     ## hidden states using the Viterbi algorithm.
 
 
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('model')
+    parser.add_argument('--generate', type=int)
 
+    args = parser.parse_args()
 
+    h = HMM()
+    h.load(args.model)
+    print(h.generate(args.generate))
 
 
