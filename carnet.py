@@ -52,8 +52,8 @@ cpd_ignition = TabularCPD(
 cpd_starts = TabularCPD(
     variable="Starts",
     variable_card=2,
-    values=[[0.95, 0.05, 0.05, 0.001, 0.99, 0.01, 0.01, 0.01],
-            [0.05, 0.95, 0.95, 0.9999, 0.01, 0.99, 0.99, 0.99],
+    values=[[0.99, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01],
+            [0.01, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99],
             ],
     evidence=["Ignition", "Gas", "KeyPresent"],
     evidence_card=[2, 2, 2],
