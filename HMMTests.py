@@ -42,5 +42,10 @@ class MyTestCase(unittest.TestCase):
         s = Sequence(["grumpy", "happy", "grumpy"], ["purr", "silent", "silent", "meow", "meow"])
         print(h.viterbi(s))
 
+        h1 = HMM()
+        h1.load('lander')
+        s1 = Sequence(["PRON", "VERB", "DET", "NOUN"], ["1,1", "2,2", "2,2", "3,3", "4,3"])
+        print(h1.viterbi(s1))
+
 if __name__ == '__main__':
     unittest.main()

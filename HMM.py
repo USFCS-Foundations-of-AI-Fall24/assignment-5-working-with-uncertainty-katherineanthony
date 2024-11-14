@@ -5,6 +5,7 @@ import argparse
 import codecs
 import os
 from collections import defaultdict
+from fileinput import filename
 
 import numpy
 
@@ -45,6 +46,7 @@ class HMM:
         with open(emit_file, 'r') as f:
             for line in f.readlines():
                 line = line.split()
+                print("line:", line)
                 if line[0] not in emit_dict:
                     emit_dict[line[0]] = {}
                 if line[1] not in emit_dict[line[0]]:
@@ -163,6 +165,7 @@ class HMM:
                     if i == 1:  ## base case (use hash)
                         curr_mood = rows[j]
                         curr_state = columns[i]
+                        print("curr_res:", curr_mood, "curr state:", curr_state)
                         prob_curr_res_given_curr_mood = float(self.emissions[curr_mood].get(curr_state))
                         prob_prev_k_mood = float(self.transitions["#"].get(curr_mood))
                         total = prob_curr_res_given_curr_mood * prob_prev_k_mood
@@ -219,11 +222,23 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('model')
     parser.add_argument('--generate', type=int)
+    parser.add_argument('--viterbi', type=str)
 
     args = parser.parse_args()
+    print("args:", args)
 
     h = HMM()
     h.load(args.model)
-    print(h.generate(args.generate))
+    if args.generate is not None:
+        print(h.generate(args.generate))
+    if args.viterbi:
+        try:
+            with open(args.viterbi, 'r') as f:
+                for line in f.readlines():
+                    if line is not None:
+                        s = Sequence("", line.split())
+                        print(h.viterbi(s))
+        except FileNotFoundError:
+            print(f"Error: The file {args.viterbi} does not exist.")
 
 
