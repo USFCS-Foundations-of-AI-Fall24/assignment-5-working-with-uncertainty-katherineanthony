@@ -1,6 +1,8 @@
 import unittest
 
-from HMM import HMM
+from plotly.graph_objs.bar import Selected
+
+from HMM import HMM, Sequence
 
 
 class MyTestCase(unittest.TestCase):
@@ -28,7 +30,17 @@ class MyTestCase(unittest.TestCase):
         h1.load('partofspeech')
         print(h1.generate(20))
 
+    def test_forward(self):
+        h = HMM()
+        h.load('cat')
+        s = Sequence(["grumpy", "happy", "grumpy"], ["purr", "silent", "silent", "meow", "meow"])
+        print(h.forward(s))
 
+    def test_viterbi(self):
+        h = HMM()
+        h.load('cat')
+        s = Sequence(["grumpy", "happy", "grumpy"], ["purr", "silent", "silent", "meow", "meow"])
+        print(h.viterbi(s))
 
 if __name__ == '__main__':
     unittest.main()
