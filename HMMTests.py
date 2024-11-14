@@ -20,6 +20,13 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(h.transitions, transitions)
         self.assertEqual(h.emissions, emissions)
 
+        """
+        see if all the values sum to one in load
+        """
+
+        h1 = HMM()
+        h1.load('partofspeech')
+
 
     def test_generate(self):
         h = HMM()
@@ -35,17 +42,32 @@ class MyTestCase(unittest.TestCase):
         h.load('cat')
         s = Sequence(["grumpy", "happy", "grumpy"], ["purr", "silent", "silent", "meow", "meow"])
         print(h.forward(s))
+        #
+        h1 = HMM()
+        h1.load('lander')
+        s1 = Sequence([], ["1,1", "2,2", "2,2", "3,3", "4,3"])
+        print(h1.forward(s1))
+
+        h2 = HMM()
+        h2.load('partofspeech')
+        s2 = Sequence([], ["this", "is", "a", "light", "blanket", "."])
+        print(h2.forward(s2))
 
     def test_viterbi(self):
         h = HMM()
         h.load('cat')
         s = Sequence(["grumpy", "happy", "grumpy"], ["purr", "silent", "silent", "meow", "meow"])
         print(h.viterbi(s))
-
+        #
         h1 = HMM()
         h1.load('lander')
-        s1 = Sequence(["PRON", "VERB", "DET", "NOUN"], ["1,1", "2,2", "2,2", "3,3", "4,3"])
+        s1 = Sequence(['1,1', '2,2', '3,2', '4,3', '5,3'], ["1,1", "2,2", "2,2", "3,3", "4,3"])
         print(h1.viterbi(s1))
+
+        h2 = HMM()
+        h2.load('partofspeech')
+        s2 = Sequence([], ["this", "is", "a", "light", "blanket", "."])
+        print(h2.viterbi(s2))
 
 if __name__ == '__main__':
     unittest.main()

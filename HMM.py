@@ -30,7 +30,6 @@ class HMM:
         e.g. {'happy': {'silent': '0.2', 'meow': '0.3', 'purr': '0.5'},
               'grumpy': {'silent': '0.5', 'meow': '0.4', 'purr': '0.1'},
               'hungry': {'silent': '0.2', 'meow': '0.6', 'purr': '0.2'}}"""
-
         self.transitions = transitions
         self.emissions = emissions
 
@@ -52,7 +51,7 @@ class HMM:
                     emit_dict[line[0]][line[1]] = {}
                 emit_dict[line[0]].update({line[1]: line[2]})
 
-        trans_dict = {}
+        trans_dict = defaultdict(dict)
         with open(trans_file, 'r') as f:
             for line in f.readlines():
                 line = line.split()
@@ -61,6 +60,27 @@ class HMM:
                 if line[1] not in trans_dict[line[0]]:
                     trans_dict[line[0]][line[1]] = {}
                 trans_dict[line[0]].update({line[1]: line[2]})
+        if basename == "partofspeech":
+            for item in emit_dict.keys():
+                sum = 0
+                count = 0
+                for val in emit_dict[item].keys():
+                    sum += float(emit_dict[item].get(val, 0))
+                    count += 1
+
+                if sum < 1:
+                    for val in emit_dict[item].keys():
+                        emit_dict[item][val] = float(emit_dict[item].get(val, 0)) / count
+            for item in trans_dict.keys():
+                sum = 0
+                count = 0
+                for val in trans_dict[item].keys():
+                    sum += float(trans_dict[item].get(val, 0))
+                    count += 1
+
+                if sum < 1:
+                    for val in trans_dict[item].keys():
+                        trans_dict[item][val] = float(trans_dict[item].get(val, 0)) / count
 
         self.emissions = emit_dict
         self.transitions = trans_dict
@@ -96,6 +116,7 @@ class HMM:
         columns = ["-"] + sequence.outputseq
         row_length = len(rows)
         column_length = len(columns)
+        numpy.set_printoptions(suppress=True)
         m = numpy.zeros((row_length, column_length))
         for i in range(column_length):
 
@@ -108,40 +129,31 @@ class HMM:
                     if i == 1: ## base case (use hash)
                         curr_mood = rows[j]
                         curr_state = columns[i]
-                        prob_curr_res_given_curr_mood = float(self.emissions[curr_mood].get(curr_state))
-                        prob_prev_k_mood = float(self.transitions["#"].get(curr_mood))
+                        prob_curr_res_given_curr_mood = float(self.emissions[curr_mood].get(curr_state, 0))
+                        prob_prev_k_mood = float(self.transitions["#"].get(curr_mood, 0))
                         total = prob_curr_res_given_curr_mood * prob_prev_k_mood
-                        m[j, i] = total
+                        m[j, i] = round(total, 5)
                     else:
                         while k < len(rows):
                             curr_i_mood = rows[k]
-                            if not curr_i_mood == "#":
-                                curr_mood = rows[j]
-                                curr_state = columns[i]
-                                prob_curr_res_given_curr_mood = float(self.emissions[curr_mood].get(curr_state))
-                                prob_curr_mood_given_k_state = float(self.transitions[curr_i_mood].get(curr_mood))
-                                prob_prev_k_mood = float(m[k, i - 1])
-                                curr_total = (prob_curr_res_given_curr_mood * prob_curr_mood_given_k_state * prob_prev_k_mood)
-                                total += curr_total
+                            curr_mood = rows[j]
+                            curr_state = columns[i]
+                            prob_curr_res_given_curr_mood = float(self.emissions[curr_mood].get(curr_state, 0))
+                            prob_curr_mood_given_k_state = float(self.transitions[curr_i_mood].get(curr_mood, 0))
+                            prob_prev_k_mood = float(m[k, i - 1])
+                            curr_total = (prob_curr_res_given_curr_mood * prob_curr_mood_given_k_state * prob_prev_k_mood)
+                            total += curr_total
 
                             k += 1
-                            ## calculate the probabilities
-                            ##
+
                         m[j, i] = round(total, 5)
-        print(m)
-        max_state = "happy"
+        max_state = rows[1]
         for final_i in range(row_length):
             max = 0
             if m[final_i, column_length - 1] > max:
                 max = m[final_i, column_length - 1]
                 max_state = rows[final_i]
-            # print("max_state", max_state)
         return max_state
-    ## you do this: Implement the forward algorithm. Given a Sequence with a list of emissions,
-    ## determine the most likely sequence of states.
-
-
-
 
 
 
@@ -159,18 +171,17 @@ class HMM:
                 if j == 0 or i == 0:
                     prob_matrix[j, i] = 0  ## checking if it's the base case of #
                 else:
-                    total = 0
                     k = 1
                     if i == 1:  ## base case (use hash)
                         curr_mood = rows[j]
                         curr_state = columns[i]
 
-                        prob_curr_res_given_curr_mood = self.emissions[curr_mood].get(curr_state)
+                        prob_curr_res_given_curr_mood = self.emissions[curr_mood].get(curr_state, 0)
                         if prob_curr_res_given_curr_mood is None:
                             prob_curr_res_given_curr_mood = 0
                         else:
                             prob_curr_res_given_curr_mood = float(prob_curr_res_given_curr_mood)
-                        prob_prev_k_mood = float(self.transitions["#"].get(curr_mood))
+                        prob_prev_k_mood = float(self.transitions["#"].get(curr_mood, 0))
                         total = prob_curr_res_given_curr_mood * prob_prev_k_mood
                         prob_matrix[j, i] = total
                         bk_ptr_matrix[j, i] = 0
@@ -183,12 +194,12 @@ class HMM:
                             if not curr_i_mood == "#":
                                 curr_mood = rows[j]
                                 curr_state = columns[i]
-                                prob_curr_res_given_curr_mood = self.emissions[curr_mood].get(curr_state)
+                                prob_curr_res_given_curr_mood = self.emissions[curr_mood].get(curr_state, 0)
                                 if prob_curr_res_given_curr_mood is None:
                                     prob_curr_res_given_curr_mood = 0
                                 else:
                                     prob_curr_res_given_curr_mood = float(prob_curr_res_given_curr_mood)
-                                prob_curr_mood_given_k_state = (self.transitions[curr_i_mood].get(curr_mood))
+                                prob_curr_mood_given_k_state = (self.transitions[curr_i_mood].get(curr_mood, 0))
                                 if prob_curr_mood_given_k_state is None:
                                     prob_curr_mood_given_k_state = 0
                                 else:
@@ -204,11 +215,10 @@ class HMM:
                         prob_matrix[j, i] = round(max_val, 7)
                         bk_ptr_matrix[j, i] = max_i
 
-
         sz = len(columns) - 1
 
-        max_state = "happy"
-        max_i = 0
+        max_state = rows[1]
+        max_i = 1
         for final_i in range(row_length):
             max = 0
             if prob_matrix[final_i, column_length - 1] > max:
@@ -217,6 +227,7 @@ class HMM:
                 max_i = final_i
         state_seq = []
         next_i = int(max_i)
+
         while sz > 0:
             curr_state = rows[next_i]
             state_seq.append(curr_state)
@@ -225,8 +236,13 @@ class HMM:
         state_seq.reverse()
 
         return state_seq
-    ## You do this. Given a sequence with a list of emissions, fill in the most likely
-    ## hidden states using the Viterbi algorithm.
+
+    def lander_forward(self, sequence):
+        safe_spots = ["2,5", "3,4", "4,3", "4,4", "5,5"]
+        spot = self.forward(sequence)
+        if spot in safe_spots:
+            return "Safe"
+        return "Not safe"
 
 
 if __name__ == '__main__':
@@ -234,17 +250,24 @@ if __name__ == '__main__':
     parser.add_argument('model')
     parser.add_argument('--generate', type=int)
     parser.add_argument('--viterbi', type=str)
+    parser.add_argument('--forward', type=str)
 
     args = parser.parse_args()
-    print("args:", args)
+
 
     h = HMM()
     h.load(args.model)
+
     if args.generate is not None:
         print(h.generate(args.generate))
-    if args.viterbi:
+    if args.viterbi or args.forward:
+        file = ""
+        if args.viterbi:
+            file = args.viterbi
+        else:
+            file = args.forward
         try:
-            with open(args.viterbi, 'r') as f:
+            with open(file, 'r') as f:
                 set_seq = False
                 set_out = False
                 outseq = []
@@ -257,9 +280,18 @@ if __name__ == '__main__':
                     elif not set_out:
                         outseq = line.split()
                         set_out = True
-                        print(outseq)
                     if set_seq and set_out:
-                        # print(h.viterbi(Sequence(state_seq, outseq)))
+
+                        print("for seq:", outseq)
+                        if args.viterbi:
+                            print("most likely states:", h.viterbi(Sequence(state_seq, outseq)))
+                        else:
+                            if args.model == "lander":
+                                print("next state:", h.lander_forward(Sequence(state_seq, outseq)))
+                            else:
+                                print("next state:", h.forward(Sequence(state_seq, outseq)))
+                        print("------------")
+
                         set_seq = False
                         set_out = False
                         state_seq = []
