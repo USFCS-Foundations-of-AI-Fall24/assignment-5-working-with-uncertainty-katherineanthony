@@ -42,11 +42,10 @@ class HMM:
 
         emit_file = basename + '.emit'
         trans_file = basename + '.trans'
-        emit_dict = {}
+        emit_dict = defaultdict(dict) ## update this to be a default dict
         with open(emit_file, 'r') as f:
             for line in f.readlines():
                 line = line.split()
-                print("line:", line)
                 if line[0] not in emit_dict:
                     emit_dict[line[0]] = {}
                 if line[1] not in emit_dict[line[0]]:
@@ -165,8 +164,12 @@ class HMM:
                     if i == 1:  ## base case (use hash)
                         curr_mood = rows[j]
                         curr_state = columns[i]
-                        print("curr_res:", curr_mood, "curr state:", curr_state)
-                        prob_curr_res_given_curr_mood = float(self.emissions[curr_mood].get(curr_state))
+
+                        prob_curr_res_given_curr_mood = self.emissions[curr_mood].get(curr_state)
+                        if prob_curr_res_given_curr_mood is None:
+                            prob_curr_res_given_curr_mood = 0
+                        else:
+                            prob_curr_res_given_curr_mood = float(prob_curr_res_given_curr_mood)
                         prob_prev_k_mood = float(self.transitions["#"].get(curr_mood))
                         total = prob_curr_res_given_curr_mood * prob_prev_k_mood
                         prob_matrix[j, i] = total
@@ -180,8 +183,16 @@ class HMM:
                             if not curr_i_mood == "#":
                                 curr_mood = rows[j]
                                 curr_state = columns[i]
-                                prob_curr_res_given_curr_mood = float(self.emissions[curr_mood].get(curr_state))
-                                prob_curr_mood_given_k_state = float(self.transitions[curr_i_mood].get(curr_mood))
+                                prob_curr_res_given_curr_mood = self.emissions[curr_mood].get(curr_state)
+                                if prob_curr_res_given_curr_mood is None:
+                                    prob_curr_res_given_curr_mood = 0
+                                else:
+                                    prob_curr_res_given_curr_mood = float(prob_curr_res_given_curr_mood)
+                                prob_curr_mood_given_k_state = (self.transitions[curr_i_mood].get(curr_mood))
+                                if prob_curr_mood_given_k_state is None:
+                                    prob_curr_mood_given_k_state = 0
+                                else:
+                                    prob_curr_mood_given_k_state = float(prob_curr_mood_given_k_state)
                                 prob_prev_k_mood = float(prob_matrix[k, i - 1])
                                 curr_total = (
                                             prob_curr_res_given_curr_mood * prob_curr_mood_given_k_state * prob_prev_k_mood)
@@ -234,10 +245,25 @@ if __name__ == '__main__':
     if args.viterbi:
         try:
             with open(args.viterbi, 'r') as f:
+                set_seq = False
+                set_out = False
+                outseq = []
+                state_seq = []
                 for line in f.readlines():
-                    if line is not None:
-                        s = Sequence("", line.split())
-                        print(h.viterbi(s))
+                    if not set_seq:
+                        state_seq = line.split()
+                        set_seq = True
+                        # print(state_seq)
+                    elif not set_out:
+                        outseq = line.split()
+                        set_out = True
+                        print(outseq)
+                    if set_seq and set_out:
+                        # print(h.viterbi(Sequence(state_seq, outseq)))
+                        set_seq = False
+                        set_out = False
+                        state_seq = []
+                        outseq = []
         except FileNotFoundError:
             print(f"Error: The file {args.viterbi} does not exist.")
 
