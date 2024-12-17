@@ -1,0 +1,53 @@
+Assignment 5 Comments:
+
+sklearn:
+
+new dataset. 5/5
+
+random forest 5/5
+
+GridSearchCV 5/5
+
+Scatterplot 5/5
+
+Belief Networks:
+
+alarm queries 5/5
+
+car queries 5/5
+
+additional node 5/5
+
+HMM:
+
+load 5/5
+
+generate 10/10
+
+lander models 5/5
+
+forward 10/10
+
+viterbi 12/15
+Only generates ADV with the part of speech dataset.
+(base) cbrooks@Help-On-The-Way assignment-5-working-with-uncertainty-katherineanthony % python HMM.py partofspeech --viterbi ambiguous_sents.obs
+for seq: ['i', 'shot', 'the', 'elephant', '.']
+most likely states: ['ADV', 'ADV', 'ADV', 'ADV', 'ADV']
+
+
+Utility:
+
+q1 5/5
+
+q2 5/5
+
+q3 2/2
+
+q4 3/3
+
+q5 2/2
+
+q6 1/3 - since rt1 is always faster, the satellite is not helpful.
+
+97/100
+
